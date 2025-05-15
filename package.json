@@ -1,5 +1,5 @@
 {
-  "name": "react-frontend",
+  "name": "react-frontend-preview",
   "version": "1.0.0",
   "scripts": {
     "dev": "vite",
