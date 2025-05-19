@@ -1,5 +1,5 @@
 {
-  "name": "react-frontend-preview",
+  "name": "react-auth-frontend-v2",
   "version": "1.0.0",
   "scripts": {
     "dev": "vite",

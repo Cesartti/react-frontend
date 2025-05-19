@@ -3,108 +3,89 @@ import axios from 'axios'
 
 const API_URL = 'https://fastapi-auth-backend-production.up.railway.app'
 
-const initialState = {
-  codigo_catalogo: '',
-  medido_a_traves: '',
-  descripcion_indicador: '',
-  producto_mga: '',
-  tipo_indicador: '',
-  linea_base: '',
-  meta_cuatrienio: '',
-  vigencia: '',
-  valor_modificado: '',
-  total_programado: '',
-  aporte_proyecto: '',
-  porcentaje_aporte: '',
-  valor_final: '',
-  aporte_acumulado: '',
-  porcentaje_total_aporte: ''
-}
-
-const labels = {
-  codigo_catalogo: 'Código Catálogo',
-  medido_a_traves: 'Medido a través de',
-  descripcion_indicador: 'Descripción del Indicador',
-  producto_mga: 'Producto MGA',
-  tipo_indicador: 'Tipo de Indicador',
-  linea_base: 'Línea Base',
-  meta_cuatrienio: 'Meta Cuatrienio',
-  vigencia: 'Vigencia',
-  valor_modificado: 'Valor Modificado',
-  total_programado: 'Total Programado Vigencia',
-  aporte_proyecto: 'Aporte del Proyecto',
-  porcentaje_aporte: '% de Aporte',
-  valor_final: 'Valor Final',
-  aporte_acumulado: 'Aporte Acumulado Proyectos Anteriores',
-  porcentaje_total_aporte: '% Total de Aporte'
-}
-
 function Home() {
-  const [form, setForm] = useState(initialState)
-  const [preview, setPreview] = useState(null)
+  const [view, setView] = useState('login')
+  const [form, setForm] = useState({ username: '', password: '', role: '1' })
+  const [token, setToken] = useState('')
+  const [userInfo, setUserInfo] = useState({ role: null, user_id: null })
 
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    setForm({ ...form, [name]: value })
-  }
-
-  const handlePreview = (e) => {
+  const login = async (e) => {
     e.preventDefault()
-    setPreview(form)
-  }
-
-  const handleSubmit = async () => {
     try {
-      const payload = { ...form }
-      const numericFields = [
-        'linea_base', 'meta_cuatrienio', 'valor_modificado', 'total_programado',
-        'aporte_proyecto', 'porcentaje_aporte', 'valor_final',
-        'aporte_acumulado', 'porcentaje_total_aporte'
-      ]
-      numericFields.forEach(key => {
-        payload[key] = parseFloat(payload[key]) || 0
-      })
-      await axios.post(API_URL, payload)
-      alert('Formulario enviado correctamente')
-      setForm(initialState)
-      setPreview(null)
+      const formData = new FormData()
+      formData.append('username', form.username)
+      formData.append('password', form.password)
+      const res = await axios.post(`${API_URL}/token`, formData)
+      setToken(res.data.access_token)
+      setUserInfo({ role: res.data.role, user_id: res.data.user_id })
+      setView('panel')
     } catch (err) {
-      console.error(err)
-      alert('Error al enviar el formulario')
+      alert('Login fallido')
     }
   }
 
-  const renderInput = (label, name) => (
-    <div style={{ marginBottom: '1rem' }}>
-      <label><strong>{label}</strong></label><br />
-      <input name={name} value={form[name]} onChange={handleChange} style={{ width: '100%' }} />
-    </div>
-  )
+  const register = async (e) => {
+    e.preventDefault()
+    try {
+      await axios.post(`${API_URL}/register`, {
+        username: form.username,
+        password: form.password,
+        role: parseInt(form.role)
+      })
+      alert('Usuario registrado, ahora puedes iniciar sesión.')
+      setView('login')
+    } catch (err) {
+      alert('Registro fallido')
+    }
+  }
+
+  const logout = () => {
+    setToken('')
+    setUserInfo({ role: null, user_id: null })
+    setView('login')
+  }
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
-      <h2>Formulario de Modificación</h2>
-      <form onSubmit={handlePreview}>
-        {Object.keys(initialState).map((key) => renderInput(labels[key], key))}
-        <button type="submit">Vista Previa</button>
-      </form>
-
-      {preview && (
-        <div style={{ marginTop: '2rem' }}>
-          <h3>Vista Previa</h3>
-          <table border="1" cellPadding="6">
-            <tbody>
-              {Object.keys(preview).map((key) => (
-                <tr key={key}>
-                  <td><strong>{labels[key]}</strong></td>
-                  <td>{preview[key]}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+    <div style={{ padding: '2rem' }}>
+      {view === 'login' && (
+        <>
+          <h2>Iniciar Sesión</h2>
+          <form onSubmit={login}>
+            <input placeholder="Usuario" onChange={e => setForm({ ...form, username: e.target.value })} />
+            <br /><input placeholder="Contraseña" type="password" onChange={e => setForm({ ...form, password: e.target.value })} />
+            <br /><button type="submit">Entrar</button>
+          </form>
           <br />
-          <button onClick={handleSubmit}>Confirmar y Enviar</button>
-        </div>
+          <button onClick={() => setView('register')}>Registrarse</button>
+        </>
+      )}
+
+      {view === 'register' && (
+        <>
+          <h2>Registro de Usuario</h2>
+          <form onSubmit={register}>
+            <input placeholder="Usuario" onChange={e => setForm({ ...form, username: e.target.value })} />
+            <br /><input placeholder="Contraseña" type="password" onChange={e => setForm({ ...form, password: e.target.value })} />
+            <br />
+            <select onChange={e => setForm({ ...form, role: e.target.value })}>
+              <option value="1">Creador</option>
+              <option value="2">Validador</option>
+              <option value="3">Firmante</option>
+            </select>
+            <br /><button type="submit">Registrarse</button>
+          </form>
+          <br />
+          <button onClick={() => setView('login')}>Volver</button>
+        </>
+      )}
+
+      {view === 'panel' && (
+        <>
+          <h2>Bienvenido, Usuario {userInfo.user_id}</h2>
+          <p>Rol: {userInfo.role === 1 ? 'Creador' : userInfo.role === 2 ? 'Validador' : 'Firmante'}</p>
+          <button onClick={logout}>Cerrar sesión</button>
+          <p>Aquí irá el panel completo según el tipo de usuario.</p>
+        </>
       )}
     </div>
   )
