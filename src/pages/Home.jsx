@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import axios from 'axios'
 
-const API_URL = 'https://fastapi-backend-production-7f62.up.railway.app/modification-form/'
+const API_URL = 'https://fastapi-auth-backend-production.up.railway.app'
 
 const initialState = {
   codigo_catalogo: '',
