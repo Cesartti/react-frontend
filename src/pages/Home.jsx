@@ -35,7 +35,7 @@ function Home() {
       alert('Usuario registrado, ahora puedes iniciar sesión.')
       setView('login')
     } catch (err) {
-      alert('Registro fallido')
+      alert(`Registro fallido: ${err.response?.data?.detail || err.message}`)
     }
   }
 
